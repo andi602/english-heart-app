@@ -315,7 +315,7 @@
     </button>
 
     <div class="status-box" id="statusBox">
-      Готово к проверке. При первом нажатии зафиксируем твой текущий XP как точку старта.
+      Готово к проверке. При первом запуске фиксируем текущий XP, а каждый новый прирост добавляем в копилку.
     </div>
   </div>
 
@@ -331,7 +331,7 @@
 
     const WORKER_URL = 'https://sparkling-cherry-7f42.andiisalaz9696.workers.dev';
     const XP_PER_HEART = 50;
-    const STORAGE_KEY = 'english_hearts_v3';
+    const STORAGE_KEY = 'english_hearts_v4';
 
     const CHARACTERS = [
       {
@@ -359,13 +359,25 @@
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (raw) return JSON.parse(raw);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          return {
+            username: parsed.username || 'Andriy98130',
+            lastDuolingoXp: typeof parsed.lastDuolingoXp === 'number' ? parsed.lastDuolingoXp : 91,
+            bufferXp: typeof parsed.bufferXp === 'number' ? parsed.bufferXp : 32,
+            earnedXpTotal: typeof parsed.earnedXpTotal === 'number' ? parsed.earnedXpTotal : 32,
+            hearts: typeof parsed.hearts === 'number' ? parsed.hearts : 0,
+            unlocked: parsed.unlocked && typeof parsed.unlocked === 'object' ? parsed.unlocked : {}
+          };
+        }
       } catch (e) {}
+
+      // Стартовое состояние: учтён переход с 59 XP до 91 XP (+32 XP в копилке)
       return {
         username: 'Andriy98130',
-        lastDuolingoXp: null,
-        bufferXp: 0,
-        earnedXpTotal: 0,
+        lastDuolingoXp: 91,
+        bufferXp: 32,
+        earnedXpTotal: 32,
         hearts: 0,
         unlocked: {}
       };
@@ -512,7 +524,7 @@
         const user = await fetchDuolingoUser(username);
         const currentXp = Number(user.totalXp || 0);
 
-        if (state.lastDuolingoXp === null) {
+        if (state.lastDuolingoXp === null || typeof state.lastDuolingoXp !== 'number') {
           state.lastDuolingoXp = currentXp;
           saveState();
           render();
