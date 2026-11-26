@@ -13,7 +13,6 @@
       --text: #f3f4f6;
       --muted: #9ca3af;
       --accent: #58cc02;
-      --accent-dark: #46a302;
       --heart: #ff4b4b;
       --xp: #ffc800;
       --border: #2e3542;
@@ -161,18 +160,6 @@
 
     .status-box.ok { border-color: #2f6f18; color: #b7f598; }
     .status-box.err { border-color: #7f2323; color: #fca5a5; }
-
-    .fallback-box {
-      margin-top: 12px;
-      padding-top: 12px;
-      border-top: 1px dashed var(--border);
-    }
-
-    .fallback-label {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 8px;
-    }
 
     .section-title {
       font-size: 16px;
@@ -330,14 +317,6 @@
     <div class="status-box" id="statusBox">
       Готово к проверке. При первом нажатии зафиксируем твой текущий XP как точку старта.
     </div>
-
-    <div class="fallback-box">
-      <div class="fallback-label">Запасной вариант (если Duolingo не отвечает через прокси):</div>
-      <div class="row" style="margin-bottom: 0;">
-        <input type="number" id="manualXpInput" placeholder="Сколько XP получил за урок?" min="1" />
-        <button class="btn-secondary" onclick="addManualXp()">+ XP</button>
-      </div>
-    </div>
   </div>
 
   <div class="section-title">Персонажи (4 уровня на каждого)</div>
@@ -350,8 +329,9 @@
       tg.expand();
     }
 
+    const WORKER_URL = 'https://sparkling-cherry-7f42.andiisalaz9696.workers.dev';
     const XP_PER_HEART = 50;
-    const STORAGE_KEY = 'english_hearts_v2';
+    const STORAGE_KEY = 'english_hearts_v3';
 
     const CHARACTERS = [
       {
@@ -476,7 +456,7 @@
       }
     }
 
-    function applyEarnedXp(gainedXp, sourceText) {
+    function applyEarnedXp(gainedXp) {
       if (gainedXp <= 0) return;
       state.earnedXpTotal += gainedXp;
       state.bufferXp += gainedXp;
@@ -489,40 +469,26 @@
       render();
 
       if (newHearts > 0) {
-        setStatus(`${sourceText}: +${gainedXp} XP → получено +${newHearts} ❤️! Остаток в копилке: ${state.bufferXp} XP.`, 'ok');
+        setStatus(`Duolingo: +${gainedXp} XP → получено +${newHearts} ❤️! В копилке осталось ${state.bufferXp} XP.`, 'ok');
       } else {
-        setStatus(`${sourceText}: +${gainedXp} XP добавлено в копилку (${state.bufferXp}/${XP_PER_HEART} XP до следующего ❤️).`, 'ok');
+        setStatus(`Duolingo: +${gainedXp} XP добавлено в копилку (${state.bufferXp}/${XP_PER_HEART} XP до следующего ❤️).`, 'ok');
       }
-    }
-
-    function addManualXp() {
-      const input = document.getElementById('manualXpInput');
-      const val = parseInt(input.value, 10);
-      if (!val || val <= 0) return;
-      input.value = '';
-      applyEarnedXp(val, 'Ручной ввод');
     }
 
     async function fetchDuolingoUser(username) {
-      const targetUrl = `https://www.duolingo.com/2017-06-30/users?username=${encodeURIComponent(username)}&_=${Date.now()}`;
-      const proxies = [
-        url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
-        url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
-      ];
-
-      for (const makeProxyUrl of proxies) {
-        try {
-          const res = await fetch(makeProxyUrl(targetUrl));
-          if (!res.ok) continue;
-          const data = await res.json();
-          if (data && Array.isArray(data.users) && data.users.length > 0) {
-            return data.users[0];
-          }
-        } catch (e) {
-          // пробуем следующий прокси
-        }
+      if (!WORKER_URL) {
+        throw new Error('WORKER_URL not configured');
       }
-      throw new Error('Не удалось получить данные от Duolingo через прокси');
+      const endpoint = `${WORKER_URL.replace(/\/$/, '')}/?username=${encodeURIComponent(username)}&_=${Date.now()}`;
+      const res = await fetch(endpoint);
+      if (!res.ok) {
+        throw new Error(`Worker HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      if (typeof data.totalXp !== 'number') {
+        throw new Error('Invalid worker payload');
+      }
+      return data;
     }
 
     async function syncDuolingo() {
@@ -540,7 +506,7 @@
       const btn = document.getElementById('syncBtn');
       btn.disabled = true;
       btn.textContent = '⏳ Проверяем Duolingo...';
-      setStatus(`Запрашиваем профиль ${username}...`);
+      setStatus(`Запрашиваем профиль ${username} через Worker...`);
 
       try {
         const user = await fetchDuolingoUser(username);
@@ -554,14 +520,14 @@
         } else if (currentXp > state.lastDuolingoXp) {
           const diff = currentXp - state.lastDuolingoXp;
           state.lastDuolingoXp = currentXp;
-          applyEarnedXp(diff, `Duolingo (${currentXp} XP всего)`);
+          applyEarnedXp(diff);
         } else {
           saveState();
           render();
-          setStatus(`Новых уроков пока нет (в Duolingo по-прежнему ${currentXp} XP).`);
+          setStatus(`Новых XP пока нет (в Duolingo по-прежнему ${currentXp} XP).`);
         }
       } catch (err) {
-        setStatus('Duolingo или прокси временно не ответили. Можешь попробовать позже или ввести XP вручную ниже.', 'err');
+        setStatus('Не удалось получить данные через Worker. Проверь адрес воркера или попробуй через минуту.', 'err');
       } finally {
         btn.disabled = false;
         btn.textContent = '🔄 Проверить Duolingo и забрать ❤️';
