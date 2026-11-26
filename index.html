@@ -2,52 +2,50 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>English Hearts</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #0f1210;
-      --card: #181d1a;
-      --card-2: #202723;
+      --bg: #111317;
+      --card: #1b1f26;
+      --card-2: #242a34;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
       --accent: #58cc02;
-      --text: #f3f6f4;
-      --muted: #9aa69f;
-      --border: rgba(255, 255, 255, 0.08);
+      --accent-dark: #46a302;
+      --heart: #ff4b4b;
+      --xp: #ffc800;
+      --border: #2e3542;
     }
 
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
       padding: 16px;
       padding-bottom: 40px;
     }
 
-    .topbar {
+    .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 14px 16px;
-      margin-bottom: 16px;
+      margin-bottom: 14px;
     }
 
-    .brand h1 {
+    .title {
       font-size: 18px;
       font-weight: 700;
     }
 
-    .brand p {
+    .subtitle {
       font-size: 12px;
       color: var(--muted);
       margin-top: 2px;
@@ -55,56 +53,66 @@
 
     .stats {
       display: flex;
-      gap: 10px;
-      align-items: center;
+      gap: 8px;
+      flex-shrink: 0;
     }
 
-    .pill {
+    .badge {
       background: var(--card-2);
       border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 14px;
+      border-radius: 12px;
+      padding: 8px 10px;
       font-weight: 700;
-      white-space: nowrap;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
-    .pill.hearts {
-      color: #ff7b93;
-    }
-
-    .pill.xp {
-      color: #8ce947;
-    }
+    .badge.hearts { color: var(--heart); }
+    .badge.xp { color: var(--xp); }
 
     .panel {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 14px 16px;
-      margin-bottom: 18px;
+      padding: 14px;
+      margin-bottom: 16px;
     }
 
     .panel-title {
       font-size: 14px;
       font-weight: 600;
       margin-bottom: 10px;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .rate-tag {
+      font-size: 11px;
+      color: var(--muted);
+      background: var(--card-2);
+      padding: 3px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
     }
 
     .row {
       display: flex;
       gap: 8px;
-      flex-wrap: wrap;
+      margin-bottom: 10px;
     }
 
     input {
       flex: 1;
-      min-width: 160px;
+      min-width: 0;
       background: var(--card-2);
       border: 1px solid var(--border);
-      color: var(--text);
       border-radius: 10px;
       padding: 10px 12px;
+      color: var(--text);
       font-size: 14px;
       outline: none;
     }
@@ -114,83 +122,99 @@
     }
 
     button {
-      background: var(--accent);
-      color: #0b1404;
       border: none;
       border-radius: 10px;
       padding: 10px 14px;
-      font-size: 14px;
       font-weight: 700;
+      font-size: 13px;
       cursor: pointer;
+      transition: transform 0.08s ease, opacity 0.15s ease;
     }
 
-    button.secondary {
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #0b1900;
+      width: 100%;
+      font-size: 14px;
+      padding: 12px;
+    }
+
+    .btn-secondary {
       background: var(--card-2);
       color: var(--text);
       border: 1px solid var(--border);
     }
 
-    button:disabled {
-      opacity: 0.45;
-      cursor: not-allowed;
-    }
-
-    .note {
+    .status-box {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
       font-size: 12px;
       color: var(--muted);
-      margin-top: 8px;
-      line-height: 1.4;
+      line-height: 1.45;
+    }
+
+    .status-box.ok { border-color: #2f6f18; color: #b7f598; }
+    .status-box.err { border-color: #7f2323; color: #fca5a5; }
+
+    .fallback-box {
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px dashed var(--border);
+    }
+
+    .fallback-label {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
     }
 
     .section-title {
       font-size: 16px;
       font-weight: 700;
-      margin-bottom: 12px;
+      margin: 18px 0 10px;
     }
 
-    .characters {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-
-    .char-card {
+    .character-block {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 18px;
+      border-radius: 16px;
       padding: 14px;
+      margin-bottom: 14px;
     }
 
-    .char-header {
+    .character-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin-bottom: 12px;
     }
 
-    .char-name {
-      font-size: 16px;
+    .character-name {
+      font-size: 15px;
       font-weight: 700;
     }
 
-    .char-progress {
+    .character-progress {
       font-size: 12px;
       color: var(--muted);
-      background: var(--card-2);
-      padding: 4px 10px;
-      border-radius: 999px;
     }
 
-    .tiers {
+    .grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 10px;
     }
 
-    .tier-box {
+    .card {
       background: var(--card-2);
       border: 1px solid var(--border);
-      border-radius: 14px;
+      border-radius: 12px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -198,229 +222,364 @@
 
     .art-wrap {
       position: relative;
-      aspect-ratio: 4 / 5;
-      background: linear-gradient(135deg, #27312c, #151917);
+      height: 150px;
       display: flex;
       align-items: center;
       justify-content: center;
+      text-align: center;
+      padding: 10px;
       overflow: hidden;
     }
 
-    .art-placeholder {
-      text-align: center;
-      padding: 12px;
-      transition: filter 0.3s ease, transform 0.3s ease;
+    .art-content {
+      transition: filter 0.3s ease;
     }
 
-    .art-placeholder.locked {
-      filter: blur(8px) brightness(0.65);
-      transform: scale(1.06);
+    .card.locked .art-content {
+      filter: blur(12px);
+      user-select: none;
     }
 
-    .art-tier-badge {
-      font-size: 12px;
+    .lock-overlay {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(17, 19, 23, 0.45);
+      gap: 4px;
+    }
+
+    .card:not(.locked) .lock-overlay {
+      display: none;
+    }
+
+    .tier-badge {
+      font-size: 11px;
       font-weight: 700;
-      color: var(--muted);
+      letter-spacing: 0.4px;
       text-transform: uppercase;
-      letter-spacing: 0.6px;
+      color: #d1d5db;
     }
 
-    .art-title {
-      font-size: 15px;
+    .tier-title {
+      font-size: 13px;
       font-weight: 700;
-      margin-top: 6px;
+      margin-top: 4px;
     }
 
-    .tier-footer {
-      padding: 10px;
+    .card-footer {
+      padding: 8px;
+      border-top: 1px solid var(--border);
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
 
-    .tier-cost {
+    .cost {
       font-size: 12px;
+      text-align: center;
       color: var(--muted);
     }
 
-    .tier-footer button {
+    .unlock-btn {
       width: 100%;
-      padding: 8px 10px;
-      font-size: 13px;
+      padding: 8px;
+      font-size: 12px;
+      background: var(--accent);
+      color: #0b1900;
     }
 
-    .unlocked-tag {
-      color: #8ce947;
-      font-size: 12px;
-      font-weight: 700;
-      text-align: center;
-      padding: 8px 0;
+    .unlock-btn.opened {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid #2e4a1e;
+      cursor: default;
     }
   </style>
 </head>
 <body>
-  <div class="topbar">
-    <div class="brand">
-      <h1>English Hearts</h1>
-      <p>Уроки → Сердечки → Карточки</p>
+
+  <div class="header">
+    <div>
+      <div class="title">English Hearts</div>
+      <div class="subtitle" id="bufferInfo">В копилке: 0 / 50 XP до ❤️</div>
     </div>
     <div class="stats">
-      <div class="pill hearts">❤️ <span id="heartsCount">0</span></div>
-      <div class="pill xp">⚡ <span id="xpCount">0</span> XP</div>
+      <div class="badge hearts">❤️ <span id="heartsCount">0</span></div>
+      <div class="badge xp">⚡ <span id="xpCount">0</span></div>
     </div>
   </div>
 
   <div class="panel">
-    <div class="panel-title">Профиль Duolingo и начисление сердечек</div>
+    <div class="panel-title">
+      <span>Синхронизация с Duolingo</span>
+      <span class="rate-tag">50 XP = 1 ❤️</span>
+    </div>
+
     <div class="row">
-      <input id="duoUsername" type="text" placeholder="Твой ник в Duolingo" />
-      <button class="secondary" onclick="saveUsername()">Сохранить</button>
+      <input type="text" id="usernameInput" placeholder="Ник в Duolingo" />
+      <button class="btn-secondary" onclick="saveUsername()">Ник</button>
     </div>
-    <div class="row" style="margin-top: 10px;">
-      <button onclick="addLessonReward(50, 2)">+50 XP (урок) → +2 ❤️</button>
-      <button class="secondary" onclick="resetDemo()">Сброс</button>
+
+    <button class="btn-primary" id="syncBtn" onclick="syncDuolingo()">
+      🔄 Проверить Duolingo и забрать ❤️
+    </button>
+
+    <div class="status-box" id="statusBox">
+      Готово к проверке. При первом нажатии зафиксируем твой текущий XP как точку старта.
     </div>
-    <div class="note">
-      Тестовая кнопка начисляет сердечки за XP. Позже подключим проверку аккаунта Duolingo и твои картинки по 4 уровням.
+
+    <div class="fallback-box">
+      <div class="fallback-label">Запасной вариант (если Duolingo не отвечает через прокси):</div>
+      <div class="row" style="margin-bottom: 0;">
+        <input type="number" id="manualXpInput" placeholder="Сколько XP получил за урок?" min="1" />
+        <button class="btn-secondary" onclick="addManualXp()">+ XP</button>
+      </div>
     </div>
   </div>
 
   <div class="section-title">Персонажи (4 уровня на каждого)</div>
-  <div class="characters" id="charactersGrid"></div>
+  <div id="gallery"></div>
 
   <script>
-    const tg = window.Telegram && window.Telegram.WebApp;
+    const tg = window.Telegram?.WebApp;
     if (tg) {
       tg.ready();
       tg.expand();
     }
 
-    const STORAGE_KEY = "english_hearts_state_v1";
+    const XP_PER_HEART = 50;
+    const STORAGE_KEY = 'english_hearts_v2';
 
     const CHARACTERS = [
       {
-        id: "char_1",
-        name: "Персонаж 1",
+        id: 'char1',
+        name: 'Персонаж 1',
         tiers: [
-          { level: 1, label: "Уровень 1", cost: 2, title: "Базовый образ" },
-          { level: 2, label: "Уровень 2", cost: 5, title: "Смелее" },
-          { level: 3, label: "Уровень 3", cost: 9, title: "Откровеннее" },
-          { level: 4, label: "Уровень 4", cost: 15, title: "Максимум" }
+          { level: 1, title: 'Базовый образ', cost: 2, bg: 'linear-gradient(135deg, #2b3545, #1b222c)' },
+          { level: 2, title: 'Образ 2', cost: 5, bg: 'linear-gradient(135deg, #3b2d4a, #21192b)' },
+          { level: 3, title: 'Образ 3', cost: 10, bg: 'linear-gradient(135deg, #4a2d36, #28171d)' },
+          { level: 4, title: 'Финальный образ', cost: 18, bg: 'linear-gradient(135deg, #573b26, #2b1d12)' }
         ]
       },
       {
-        id: "char_2",
-        name: "Персонаж 2",
+        id: 'char2',
+        name: 'Персонаж 2',
         tiers: [
-          { level: 1, label: "Уровень 1", cost: 3, title: "Базовый образ" },
-          { level: 2, label: "Уровень 2", cost: 6, title: "Смелее" },
-          { level: 3, label: "Уровень 3", cost: 11, title: "Откровеннее" },
-          { level: 4, label: "Уровень 4", cost: 18, title: "Максимум" }
+          { level: 1, title: 'Базовый образ', cost: 2, bg: 'linear-gradient(135deg, #243c3a, #152423)' },
+          { level: 2, title: 'Образ 2', cost: 5, bg: 'linear-gradient(135deg, #26384d, #15202e)' },
+          { level: 3, title: 'Образ 3', cost: 10, bg: 'linear-gradient(135deg, #3c3454, #201b2e)' },
+          { level: 4, title: 'Финальный образ', cost: 18, bg: 'linear-gradient(135deg, #542d44, #2b1623)' }
         ]
       }
     ];
 
-    function defaultState() {
-      return {
-        username: "",
-        hearts: 2,
-        xp: 0,
-        unlocked: {}
-      };
-    }
-
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        return raw ? { ...defaultState(), ...JSON.parse(raw) } : defaultState();
-      } catch {
-        return defaultState();
-      }
+        if (raw) return JSON.parse(raw);
+      } catch (e) {}
+      return {
+        username: 'Andriy98130',
+        lastDuolingoXp: null,
+        bufferXp: 0,
+        earnedXpTotal: 0,
+        hearts: 0,
+        unlocked: {}
+      };
     }
 
     let state = loadState();
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-      render();
     }
 
-    function saveUsername() {
-      const input = document.getElementById("duoUsername");
-      state.username = input.value.trim();
-      saveState();
-    }
-
-    function addLessonReward(xpGain, heartsGain) {
-      state.xp += xpGain;
-      state.hearts += heartsGain;
-      saveState();
-    }
-
-    function unlockTier(charId, level, cost) {
-      const key = `${charId}_${level}`;
-      if (state.unlocked[key] || state.hearts < cost) return;
-      state.hearts -= cost;
-      state.unlocked[key] = true;
-      saveState();
-    }
-
-    function resetDemo() {
-      state = defaultState();
-      saveState();
+    function setStatus(text, type = '') {
+      const box = document.getElementById('statusBox');
+      box.textContent = text;
+      box.className = 'status-box' + (type ? ' ' + type : '');
     }
 
     function render() {
-      document.getElementById("heartsCount").textContent = state.hearts;
-      document.getElementById("xpCount").textContent = state.xp;
-      document.getElementById("duoUsername").value = state.username;
+      document.getElementById('usernameInput').value = state.username || 'Andriy98130';
+      document.getElementById('heartsCount').textContent = state.hearts;
+      document.getElementById('xpCount').textContent = state.earnedXpTotal;
+      document.getElementById('bufferInfo').textContent = `В копилке: ${state.bufferXp} / ${XP_PER_HEART} XP до ❤️`;
 
-      const grid = document.getElementById("charactersGrid");
-      grid.innerHTML = "";
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
 
-      CHARACTERS.forEach((char) => {
-        const unlockedCount = char.tiers.filter((t) => state.unlocked[`${char.id}_${t.level}`]).length;
+      CHARACTERS.forEach(char => {
+        const unlockedCount = char.tiers.filter(t => state.unlocked[`${char.id}_${t.level}`]).length;
 
-        const card = document.createElement("div");
-        card.className = "char-card";
-
-        const tiersHtml = char.tiers
-          .map((t) => {
-            const key = `${char.id}_${t.level}`;
-            const isUnlocked = Boolean(state.unlocked[key]);
-            const canAfford = state.hearts >= t.cost;
-
-            return `
-              <div class="tier-box">
-                <div class="art-wrap">
-                  <div class="art-placeholder ${isUnlocked ? "" : "locked"}">
-                    <div class="art-tier-badge">${t.label}</div>
-                    <div class="art-title">${isUnlocked ? t.title : "Скрыто"}</div>
-                  </div>
-                </div>
-                <div class="tier-footer">
-                  <div class="tier-cost">Цена: ${t.cost} ❤️</div>
-                  ${
-                    isUnlocked
-                      ? `<div class="unlocked-tag">Открыто ✓</div>`
-                      : `<button ${canAfford ? "" : "disabled"} onclick="unlockTier('${char.id}', ${t.level}, ${t.cost})">Открыть</button>`
-                  }
-                </div>
-              </div>
-            `;
-          })
-          .join("");
-
-        card.innerHTML = `
-          <div class="char-header">
-            <div class="char-name">${char.name}</div>
-            <div class="char-progress">${unlockedCount} / ${char.tiers.length} открыто</div>
+        const block = document.createElement('div');
+        block.className = 'character-block';
+        block.innerHTML = `
+          <div class="character-head">
+            <div class="character-name">${char.name}</div>
+            <div class="character-progress">${unlockedCount} / ${char.tiers.length} открыто</div>
           </div>
-          <div class="tiers">${tiersHtml}</div>
+          <div class="grid"></div>
         `;
 
-        grid.appendChild(card);
+        const grid = block.querySelector('.grid');
+
+        char.tiers.forEach(tier => {
+          const key = `${char.id}_${tier.level}`;
+          const isUnlocked = Boolean(state.unlocked[key]);
+
+          const card = document.createElement('div');
+          card.className = 'card' + (isUnlocked ? '' : ' locked');
+          card.innerHTML = `
+            <div class="art-wrap" style="background: ${tier.bg}">
+              <div class="art-content">
+                <div class="tier-badge">Уровень ${tier.level}</div>
+                <div class="tier-title">${tier.title}</div>
+              </div>
+              <div class="lock-overlay">
+                <div style="font-size: 20px;">🔒</div>
+                <div class="tier-badge">Уровень ${tier.level}</div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <div class="cost">Цена: ${tier.cost} ❤️</div>
+              <button class="unlock-btn ${isUnlocked ? 'opened' : ''}" ${isUnlocked ? 'disabled' : ''}>
+                ${isUnlocked ? 'Открыто ✓' : 'Открыть'}
+              </button>
+            </div>
+          `;
+
+          if (!isUnlocked) {
+            card.querySelector('.unlock-btn').addEventListener('click', () => unlockTier(key, tier.cost));
+          }
+
+          grid.appendChild(card);
+        });
+
+        gallery.appendChild(block);
       });
+    }
+
+    function saveUsername() {
+      const val = document.getElementById('usernameInput').value.trim().replace(/^@/, '');
+      if (!val) return;
+      if (val !== state.username) {
+        state.username = val;
+        state.lastDuolingoXp = null;
+        saveState();
+        setStatus(`Ник обновлён на ${val}. Нажми «Проверить Duolingo», чтобы зафиксировать стартовый XP.`, 'ok');
+      } else {
+        setStatus(`Текущий ник: ${val}.`);
+      }
+    }
+
+    function applyEarnedXp(gainedXp, sourceText) {
+      if (gainedXp <= 0) return;
+      state.earnedXpTotal += gainedXp;
+      state.bufferXp += gainedXp;
+
+      const newHearts = Math.floor(state.bufferXp / XP_PER_HEART);
+      state.bufferXp = state.bufferXp % XP_PER_HEART;
+      state.hearts += newHearts;
+
+      saveState();
+      render();
+
+      if (newHearts > 0) {
+        setStatus(`${sourceText}: +${gainedXp} XP → получено +${newHearts} ❤️! Остаток в копилке: ${state.bufferXp} XP.`, 'ok');
+      } else {
+        setStatus(`${sourceText}: +${gainedXp} XP добавлено в копилку (${state.bufferXp}/${XP_PER_HEART} XP до следующего ❤️).`, 'ok');
+      }
+    }
+
+    function addManualXp() {
+      const input = document.getElementById('manualXpInput');
+      const val = parseInt(input.value, 10);
+      if (!val || val <= 0) return;
+      input.value = '';
+      applyEarnedXp(val, 'Ручной ввод');
+    }
+
+    async function fetchDuolingoUser(username) {
+      const targetUrl = `https://www.duolingo.com/2017-06-30/users?username=${encodeURIComponent(username)}&_=${Date.now()}`;
+      const proxies = [
+        url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        url => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`
+      ];
+
+      for (const makeProxyUrl of proxies) {
+        try {
+          const res = await fetch(makeProxyUrl(targetUrl));
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (data && Array.isArray(data.users) && data.users.length > 0) {
+            return data.users[0];
+          }
+        } catch (e) {
+          // пробуем следующий прокси
+        }
+      }
+      throw new Error('Не удалось получить данные от Duolingo через прокси');
+    }
+
+    async function syncDuolingo() {
+      const username = (document.getElementById('usernameInput').value.trim().replace(/^@/, '')) || state.username;
+      if (!username) {
+        setStatus('Введи ник в Duolingo.', 'err');
+        return;
+      }
+
+      if (username !== state.username) {
+        state.username = username;
+        state.lastDuolingoXp = null;
+      }
+
+      const btn = document.getElementById('syncBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Проверяем Duolingo...';
+      setStatus(`Запрашиваем профиль ${username}...`);
+
+      try {
+        const user = await fetchDuolingoUser(username);
+        const currentXp = Number(user.totalXp || 0);
+
+        if (state.lastDuolingoXp === null) {
+          state.lastDuolingoXp = currentXp;
+          saveState();
+          render();
+          setStatus(`Подключено к ${username}! Зафиксирован стартовый XP: ${currentXp}. Пройди урок и нажми проверку снова.`, 'ok');
+        } else if (currentXp > state.lastDuolingoXp) {
+          const diff = currentXp - state.lastDuolingoXp;
+          state.lastDuolingoXp = currentXp;
+          applyEarnedXp(diff, `Duolingo (${currentXp} XP всего)`);
+        } else {
+          saveState();
+          render();
+          setStatus(`Новых уроков пока нет (в Duolingo по-прежнему ${currentXp} XP).`);
+        }
+      } catch (err) {
+        setStatus('Duolingo или прокси временно не ответили. Можешь попробовать позже или ввести XP вручную ниже.', 'err');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄 Проверить Duolingo и забрать ❤️';
+      }
+    }
+
+    function unlockTier(key, cost) {
+      if (state.unlocked[key]) return;
+      if (state.hearts < cost) {
+        const msg = `Не хватает сердечек: нужно ${cost} ❤️, а у тебя ${state.hearts} ❤️.`;
+        if (tg?.showAlert) tg.showAlert(msg);
+        else alert(msg);
+        return;
+      }
+      state.hearts -= cost;
+      state.unlocked[key] = true;
+      saveState();
+      render();
     }
 
     render();
