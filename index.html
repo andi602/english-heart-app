@@ -318,7 +318,7 @@
   <div class="header">
     <div>
       <div class="title">English Hearts</div>
-      <div class="subtitle" id="bufferInfo">В копилке: 49 / 50 XP до ❤️</div>
+      <div class="subtitle" id="bufferInfo">В копилке: 2 / 25 XP до ❤️</div>
     </div>
     <div class="stats">
       <div class="badge hearts">❤️ <span id="heartsCount">2</span></div>
@@ -329,7 +329,7 @@
   <div class="panel">
     <div class="panel-title">
       <span>Синхронизация с Duolingo</span>
-      <span class="rate-tag">50 XP = 1 ❤️</span>
+      <span class="rate-tag">25 XP = 1 ❤️</span>
     </div>
 
     <div class="row">
@@ -342,7 +342,7 @@
     </button>
 
     <div class="status-box" id="statusBox">
-      Готово к проверке. Текущий прогресс сохранён: 2 ❤️ и 49/50 XP в копилке.
+      Готово к проверке. У 1-го персонажа (char10) открыты 1–3 уровни, у всех 1-й уровень открыт, баланс: 2 ❤️ и 2/25 XP.
     </div>
   </div>
 
@@ -357,55 +357,66 @@
     }
 
     const WORKER_URL = 'https://sparkling-cherry-7f42.andiisalaz9696.workers.dev';
-    const XP_PER_HEART = 50;
-    const STORAGE_KEY = 'english_hearts_v5';
+    const XP_PER_HEART = 25;
+    const STORAGE_KEY = 'english_hearts_v7';
     const ASSETS_DIR = 'assets';
 
     const TIER_PRESETS = [
-      { level: 1, title: 'Базовый образ', cost: 2, bg: 'linear-gradient(135deg, #2b3545, #1b222c)' },
-      { level: 2, title: 'Образ 2', cost: 5, bg: 'linear-gradient(135deg, #3b2d4a, #21192b)' },
-      { level: 3, title: 'Образ 3', cost: 10, bg: 'linear-gradient(135deg, #4a2d36, #28171d)' },
-      { level: 4, title: 'Финальный образ', cost: 18, bg: 'linear-gradient(135deg, #573b26, #2b1d12)' }
+      { level: 1, title: 'Базовый образ', cost: 0, bg: 'linear-gradient(135deg, #2b3545, #1b222c)' },
+      { level: 2, title: 'Образ 2', cost: 2, bg: 'linear-gradient(135deg, #3b2d4a, #21192b)' },
+      { level: 3, title: 'Образ 3', cost: 5, bg: 'linear-gradient(135deg, #4a2d36, #28171d)' },
+      { level: 4, title: 'Финальный образ', cost: 10, bg: 'linear-gradient(135deg, #573b26, #2b1d12)' }
     ];
 
-    const CHARACTER_NAMES = [
-      'Арден',
-      'Вейл',
-      'Кайра',
-      'Морган',
-      'Лира',
-      'Торн',
-      'Селена',
-      'Дакс',
-      'Эйра',
-      'Орин',
-      'Нокс'
+    const CHARACTER_ORDER = [
+      { id: 'char10', name: 'Орин' },
+      { id: 'char11', name: 'Нокс' },
+      { id: 'char1',  name: 'Арден' },
+      { id: 'char2',  name: 'Вейл' },
+      { id: 'char3',  name: 'Кайра' },
+      { id: 'char4',  name: 'Морган' },
+      { id: 'char5',  name: 'Лира' },
+      { id: 'char6',  name: 'Торн' },
+      { id: 'char7',  name: 'Селена' },
+      { id: 'char8',  name: 'Дакс' },
+      { id: 'char9',  name: 'Эйра' }
     ];
 
-    const CHARACTERS = CHARACTER_NAMES.map((name, idx) => {
-      const id = `char${idx + 1}`;
-      return {
-        id,
-        name,
-        tiers: TIER_PRESETS.map(preset => ({
-          ...preset,
-          img: `${ASSETS_DIR}/${id}_${preset.level}.webp`
-        }))
-      };
-    });
+    const CHARACTERS = CHARACTER_ORDER.map(({ id, name }) => ({
+      id,
+      name,
+      tiers: TIER_PRESETS.map(preset => ({
+        ...preset,
+        img: `${ASSETS_DIR}/${id}_${preset.level}.webp`
+      }))
+    }));
+
+    function getDefaultUnlocked() {
+      const base = {};
+      CHARACTER_ORDER.forEach(({ id }) => {
+        base[`${id}_1`] = true;
+      });
+      base['char10_2'] = true;
+      base['char10_3'] = true;
+      return base;
+    }
 
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
           const parsed = JSON.parse(raw);
+          const mergedUnlocked = {
+            ...getDefaultUnlocked(),
+            ...(parsed.unlocked && typeof parsed.unlocked === 'object' ? parsed.unlocked : {})
+          };
           return {
             username: parsed.username || 'Andriy98130',
             lastDuolingoXp: typeof parsed.lastDuolingoXp === 'number' ? parsed.lastDuolingoXp : null,
-            bufferXp: typeof parsed.bufferXp === 'number' ? parsed.bufferXp : 49,
+            bufferXp: typeof parsed.bufferXp === 'number' ? parsed.bufferXp % XP_PER_HEART : 2,
             earnedXpTotal: typeof parsed.earnedXpTotal === 'number' ? parsed.earnedXpTotal : 149,
             hearts: typeof parsed.hearts === 'number' ? parsed.hearts : 2,
-            unlocked: parsed.unlocked && typeof parsed.unlocked === 'object' ? parsed.unlocked : {}
+            unlocked: mergedUnlocked
           };
         }
       } catch (e) {}
@@ -413,10 +424,10 @@
       return {
         username: 'Andriy98130',
         lastDuolingoXp: null,
-        bufferXp: 49,
+        bufferXp: 2,
         earnedXpTotal: 149,
         hearts: 2,
-        unlocked: {}
+        unlocked: getDefaultUnlocked()
       };
     }
 
@@ -443,7 +454,7 @@
       gallery.innerHTML = '';
 
       CHARACTERS.forEach(char => {
-        const unlockedCount = char.tiers.filter(t => state.unlocked[`${char.id}_${t.level}`]).length;
+        const unlockedCount = char.tiers.filter(t => t.level === 1 || state.unlocked[`${char.id}_${t.level}`]).length;
 
         const block = document.createElement('div');
         block.className = 'character-block';
@@ -459,7 +470,7 @@
 
         char.tiers.forEach(tier => {
           const key = `${char.id}_${tier.level}`;
-          const isUnlocked = Boolean(state.unlocked[key]);
+          const isUnlocked = tier.level === 1 || Boolean(state.unlocked[key]);
 
           const card = document.createElement('div');
           card.className = 'card' + (isUnlocked ? '' : ' locked');
@@ -482,7 +493,7 @@
               </div>
             </div>
             <div class="card-footer">
-              <div class="cost">Цена: ${tier.cost} ❤️</div>
+              <div class="cost">${tier.cost === 0 ? 'Базовый уровень' : `Цена: ${tier.cost} ❤️`}</div>
               <button class="unlock-btn ${isUnlocked ? 'opened' : ''}" ${isUnlocked ? 'disabled' : ''}>
                 ${isUnlocked ? 'Открыто ✓' : 'Открыть'}
               </button>
@@ -573,7 +584,7 @@
           state.lastDuolingoXp = currentXp;
           saveState();
           render();
-          setStatus(`Подключено к ${username}! Зафиксирован базовый XP: ${currentXp} (в копилке сейчас ${state.bufferXp}/50 XP, сердечек: ${state.hearts}).`, 'ok');
+          setStatus(`Подключено к ${username}! Зафиксирован базовый XP: ${currentXp} (в копилке сейчас ${state.bufferXp}/${XP_PER_HEART} XP, сердечек: ${state.hearts}).`, 'ok');
         } else if (currentXp > state.lastDuolingoXp) {
           const diff = currentXp - state.lastDuolingoXp;
           state.lastDuolingoXp = currentXp;
