@@ -209,7 +209,7 @@
 
     .art-wrap {
       position: relative;
-      height: 150px;
+      height: 170px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -218,23 +218,50 @@
       overflow: hidden;
     }
 
+    .art-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      transition: filter 0.35s ease, transform 0.35s ease;
+    }
+
     .art-content {
-      transition: filter 0.3s ease;
+      position: relative;
+      z-index: 1;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(17, 19, 23, 0.58);
+      backdrop-filter: blur(4px);
+      transition: filter 0.3s ease, opacity 0.3s ease;
+    }
+
+    .card:not(.locked) .art-content {
+      opacity: 0.88;
+    }
+
+    .card.locked .art-img {
+      filter: blur(12px) brightness(0.75);
+      transform: scale(1.06);
+      user-select: none;
     }
 
     .card.locked .art-content {
-      filter: blur(12px);
+      filter: blur(6px);
       user-select: none;
     }
 
     .lock-overlay {
       position: absolute;
       inset: 0;
+      z-index: 2;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      background: rgba(17, 19, 23, 0.45);
+      background: rgba(17, 19, 23, 0.38);
       gap: 4px;
     }
 
@@ -291,11 +318,11 @@
   <div class="header">
     <div>
       <div class="title">English Hearts</div>
-      <div class="subtitle" id="bufferInfo">В копилке: 0 / 50 XP до ❤️</div>
+      <div class="subtitle" id="bufferInfo">В копилке: 49 / 50 XP до ❤️</div>
     </div>
     <div class="stats">
-      <div class="badge hearts">❤️ <span id="heartsCount">0</span></div>
-      <div class="badge xp">⚡ <span id="xpCount">0</span></div>
+      <div class="badge hearts">❤️ <span id="heartsCount">2</span></div>
+      <div class="badge xp">⚡ <span id="xpCount">149</span></div>
     </div>
   </div>
 
@@ -315,11 +342,11 @@
     </button>
 
     <div class="status-box" id="statusBox">
-      Готово к проверке. При первом запуске фиксируем текущий XP, а каждый новый прирост добавляем в копилку.
+      Готово к проверке. Текущий прогресс сохранён: 2 ❤️ и 49/50 XP в копилке.
     </div>
   </div>
 
-  <div class="section-title">Персонажи (4 уровня на каждого)</div>
+  <div class="section-title">Персонажи (11 героев · по 4 уровня)</div>
   <div id="gallery"></div>
 
   <script>
@@ -331,30 +358,41 @@
 
     const WORKER_URL = 'https://sparkling-cherry-7f42.andiisalaz9696.workers.dev';
     const XP_PER_HEART = 50;
-    const STORAGE_KEY = 'english_hearts_v4';
+    const STORAGE_KEY = 'english_hearts_v5';
+    const ASSETS_DIR = 'assets';
 
-    const CHARACTERS = [
-      {
-        id: 'char1',
-        name: 'Персонаж 1',
-        tiers: [
-          { level: 1, title: 'Базовый образ', cost: 2, bg: 'linear-gradient(135deg, #2b3545, #1b222c)' },
-          { level: 2, title: 'Образ 2', cost: 5, bg: 'linear-gradient(135deg, #3b2d4a, #21192b)' },
-          { level: 3, title: 'Образ 3', cost: 10, bg: 'linear-gradient(135deg, #4a2d36, #28171d)' },
-          { level: 4, title: 'Финальный образ', cost: 18, bg: 'linear-gradient(135deg, #573b26, #2b1d12)' }
-        ]
-      },
-      {
-        id: 'char2',
-        name: 'Персонаж 2',
-        tiers: [
-          { level: 1, title: 'Базовый образ', cost: 2, bg: 'linear-gradient(135deg, #243c3a, #152423)' },
-          { level: 2, title: 'Образ 2', cost: 5, bg: 'linear-gradient(135deg, #26384d, #15202e)' },
-          { level: 3, title: 'Образ 3', cost: 10, bg: 'linear-gradient(135deg, #3c3454, #201b2e)' },
-          { level: 4, title: 'Финальный образ', cost: 18, bg: 'linear-gradient(135deg, #542d44, #2b1623)' }
-        ]
-      }
+    const TIER_PRESETS = [
+      { level: 1, title: 'Базовый образ', cost: 2, bg: 'linear-gradient(135deg, #2b3545, #1b222c)' },
+      { level: 2, title: 'Образ 2', cost: 5, bg: 'linear-gradient(135deg, #3b2d4a, #21192b)' },
+      { level: 3, title: 'Образ 3', cost: 10, bg: 'linear-gradient(135deg, #4a2d36, #28171d)' },
+      { level: 4, title: 'Финальный образ', cost: 18, bg: 'linear-gradient(135deg, #573b26, #2b1d12)' }
     ];
+
+    const CHARACTER_NAMES = [
+      'Арден',
+      'Вейл',
+      'Кайра',
+      'Морган',
+      'Лира',
+      'Торн',
+      'Селена',
+      'Дакс',
+      'Эйра',
+      'Орин',
+      'Нокс'
+    ];
+
+    const CHARACTERS = CHARACTER_NAMES.map((name, idx) => {
+      const id = `char${idx + 1}`;
+      return {
+        id,
+        name,
+        tiers: TIER_PRESETS.map(preset => ({
+          ...preset,
+          img: `${ASSETS_DIR}/${id}_${preset.level}.webp`
+        }))
+      };
+    });
 
     function loadState() {
       try {
@@ -363,27 +401,27 @@
           const parsed = JSON.parse(raw);
           return {
             username: parsed.username || 'Andriy98130',
-            lastDuolingoXp: typeof parsed.lastDuolingoXp === 'number' ? parsed.lastDuolingoXp : 91,
-            bufferXp: typeof parsed.bufferXp === 'number' ? parsed.bufferXp : 32,
-            earnedXpTotal: typeof parsed.earnedXpTotal === 'number' ? parsed.earnedXpTotal : 32,
-            hearts: typeof parsed.hearts === 'number' ? parsed.hearts : 0,
+            lastDuolingoXp: typeof parsed.lastDuolingoXp === 'number' ? parsed.lastDuolingoXp : null,
+            bufferXp: typeof parsed.bufferXp === 'number' ? parsed.bufferXp : 49,
+            earnedXpTotal: typeof parsed.earnedXpTotal === 'number' ? parsed.earnedXpTotal : 149,
+            hearts: typeof parsed.hearts === 'number' ? parsed.hearts : 2,
             unlocked: parsed.unlocked && typeof parsed.unlocked === 'object' ? parsed.unlocked : {}
           };
         }
       } catch (e) {}
 
-      // Стартовое состояние: учтён переход с 59 XP до 91 XP (+32 XP в копилке)
       return {
         username: 'Andriy98130',
-        lastDuolingoXp: 91,
-        bufferXp: 32,
-        earnedXpTotal: 32,
-        hearts: 0,
+        lastDuolingoXp: null,
+        bufferXp: 49,
+        earnedXpTotal: 149,
+        hearts: 2,
         unlocked: {}
       };
     }
 
     let state = loadState();
+    saveState();
 
     function saveState() {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -427,6 +465,13 @@
           card.className = 'card' + (isUnlocked ? '' : ' locked');
           card.innerHTML = `
             <div class="art-wrap" style="background: ${tier.bg}">
+              <img
+                class="art-img"
+                src="${tier.img}"
+                alt="${char.name} — Уровень ${tier.level}"
+                loading="lazy"
+                onerror="this.style.display='none'"
+              />
               <div class="art-content">
                 <div class="tier-badge">Уровень ${tier.level}</div>
                 <div class="tier-title">${tier.title}</div>
@@ -528,7 +573,7 @@
           state.lastDuolingoXp = currentXp;
           saveState();
           render();
-          setStatus(`Подключено к ${username}! Зафиксирован стартовый XP: ${currentXp}. Пройди урок и нажми проверку снова.`, 'ok');
+          setStatus(`Подключено к ${username}! Зафиксирован базовый XP: ${currentXp} (в копилке сейчас ${state.bufferXp}/50 XP, сердечек: ${state.hearts}).`, 'ok');
         } else if (currentXp > state.lastDuolingoXp) {
           const diff = currentXp - state.lastDuolingoXp;
           state.lastDuolingoXp = currentXp;
