@@ -2,383 +2,621 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <title>English Hearts</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
-      --bg: #0f131a;
-      --card: #181e29;
-      --card-2: #202837;
-      --text: #f3f6fb;
-      --muted: #9aa6bc;
-      --accent: #ff4d6d;
-      --accent-soft: rgba(255, 77, 109, 0.16);
-      --ok: #38d996;
-      --border: rgba(255, 255, 255, 0.08);
+      --bg: #111317;
+      --card: #1b1f26;
+      --card-2: #242a34;
+      --text: #f3f4f6;
+      --muted: #9ca3af;
+      --accent: #58cc02;
+      --heart: #ff4b4b;
+      --xp: #ffc800;
+      --border: #2e3542;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      margin: 0;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       background: var(--bg);
       color: var(--text);
-      min-height: 100vh;
-      padding: 20px 16px 48px;
+      padding: 16px;
+      padding-bottom: 40px;
     }
 
-    .wrap {
-      max-width: 680px;
-      margin: 0 auto;
-    }
-
-    .top-bar {
+    .header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
-      padding: 16px 18px;
+      padding: 14px 16px;
       margin-bottom: 14px;
     }
 
-    .hearts-box {
-      display: flex;
-      align-items: center;
-      gap: 10px;
+    .title {
+      font-size: 18px;
+      font-weight: 700;
     }
 
-    .hearts-count {
-      font-size: 28px;
-      font-weight: 800;
-      line-height: 1;
-    }
-
-    .hearts-label {
-      font-size: 13px;
+    .subtitle {
+      font-size: 12px;
       color: var(--muted);
+      margin-top: 2px;
     }
 
-    .status {
+    .stats {
+      display: flex;
+      gap: 8px;
+      flex-shrink: 0;
+    }
+
+    .badge {
       background: var(--card-2);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 12px 16px;
-      margin-bottom: 18px;
+      border-radius: 12px;
+      padding: 8px 10px;
+      font-weight: 700;
       font-size: 14px;
-      color: var(--muted);
-      line-height: 1.45;
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
 
-    .status.ok {
-      color: var(--ok);
-      border-color: rgba(56, 217, 150, 0.35);
-      background: rgba(56, 217, 150, 0.08);
-    }
+    .badge.hearts { color: var(--heart); }
+    .badge.xp { color: var(--xp); }
 
-    h2 {
-      font-size: 17px;
-      margin: 22px 0 10px;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-      gap: 12px;
-    }
-
-    .card {
+    .panel {
       background: var(--card);
       border: 1px solid var(--border);
       border-radius: 16px;
       padding: 14px;
+      margin-bottom: 16px;
+    }
+
+    .panel-title {
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 10px;
+      color: var(--text);
       display: flex;
-      flex-direction: column;
       justify-content: space-between;
-      gap: 10px;
+      align-items: center;
     }
 
-    .char-emoji {
-      font-size: 32px;
-    }
-
-    .char-name {
-      font-weight: 700;
-      font-size: 15px;
-    }
-
-    .char-cost {
-      font-size: 13px;
+    .rate-tag {
+      font-size: 11px;
       color: var(--muted);
+      background: var(--card-2);
+      padding: 3px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .row {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+
+    input {
+      flex: 1;
+      min-width: 0;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      color: var(--text);
+      font-size: 14px;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--accent);
     }
 
     button {
       border: none;
       border-radius: 10px;
-      padding: 9px 12px;
-      font-weight: 600;
+      padding: 10px 14px;
+      font-weight: 700;
       font-size: 13px;
       cursor: pointer;
+      transition: transform 0.08s ease, opacity 0.15s ease;
+    }
+
+    button:active { transform: scale(0.97); }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-primary {
       background: var(--accent);
-      color: #fff;
+      color: #0b1900;
+      width: 100%;
+      font-size: 14px;
+      padding: 12px;
     }
 
-    button:disabled {
-      opacity: 0.45;
-      cursor: default;
-    }
-
-    button.unlocked {
-      background: rgba(56, 217, 150, 0.16);
-      color: var(--ok);
-    }
-
-    button.secondary {
+    .btn-secondary {
       background: var(--card-2);
       color: var(--text);
       border: 1px solid var(--border);
     }
 
-    .lessons-list {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
+    .status-box {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      font-size: 12px;
+      color: var(--muted);
+      line-height: 1.45;
     }
 
-    .lesson-item {
+    .status-box.ok { border-color: #2f6f18; color: #b7f598; }
+    .status-box.err { border-color: #7f2323; color: #fca5a5; }
+
+    .section-title {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 18px 0 10px;
+    }
+
+    .character-block {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 10px 14px;
+      border-radius: 16px;
+      padding: 14px;
+      margin-bottom: 14px;
+    }
+
+    .character-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      font-size: 14px;
+      margin-bottom: 12px;
     }
 
-    .badge {
-      background: var(--accent-soft);
-      color: var(--accent);
-      padding: 3px 9px;
-      border-radius: 999px;
+    .character-name {
+      font-size: 15px;
       font-weight: 700;
-      font-size: 12px;
     }
 
-    .tools {
-      margin-top: 24px;
+    .character-progress {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .card {
+      background: var(--card-2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
       display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
+      flex-direction: column;
+    }
+
+    .art-wrap {
+      position: relative;
+      height: 170px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 10px;
+      overflow: hidden;
+    }
+
+    .art-img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center top;
+      transition: filter 0.35s ease, transform 0.35s ease;
+    }
+
+    .art-content {
+      position: relative;
+      z-index: 1;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(17, 19, 23, 0.58);
+      backdrop-filter: blur(4px);
+      transition: filter 0.3s ease, opacity 0.3s ease;
+    }
+
+    .card:not(.locked) .art-content {
+      opacity: 0.88;
+    }
+
+    .card.locked .art-img {
+      filter: blur(12px) brightness(0.75);
+      transform: scale(1.06);
+      user-select: none;
+    }
+
+    .card.locked .art-content {
+      filter: blur(6px);
+      user-select: none;
+    }
+
+    .lock-overlay {
+      position: absolute;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: rgba(17, 19, 23, 0.38);
+      gap: 4px;
+    }
+
+    .card:not(.locked) .lock-overlay {
+      display: none;
+    }
+
+    .tier-badge {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.4px;
+      text-transform: uppercase;
+      color: #d1d5db;
+    }
+
+    .tier-title {
+      font-size: 13px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    .card-footer {
+      padding: 8px;
+      border-top: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .cost {
+      font-size: 12px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .unlock-btn {
+      width: 100%;
+      padding: 8px;
+      font-size: 12px;
+      background: var(--accent);
+      color: #0b1900;
+    }
+
+    .unlock-btn.opened {
+      background: transparent;
+      color: var(--accent);
+      border: 1px solid #2e4a1e;
+      cursor: default;
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top-bar">
-      <div class="hearts-box">
-        <div style="font-size: 32px;">❤️</div>
-        <div>
-          <div class="hearts-count" id="heartsCount">0</div>
-          <div class="hearts-label">доступно сердечек</div>
-        </div>
-      </div>
-      <div style="text-align: right;">
-        <div style="font-size: 13px; color: var(--muted);">Открыто персонажей</div>
-        <div style="font-weight: 700; font-size: 16px;" id="unlockedCount">0 / 6</div>
-      </div>
+
+  <div class="header">
+    <div>
+      <div class="title">English Hearts</div>
+      <div class="subtitle" id="bufferInfo">В копилке: 2 / 25 XP до ❤️</div>
     </div>
-
-    <div class="status" id="statusBox">
-      Готово к работе. Завершай уроки на Genius Space и переноси ссылку с наградой на это устройство.
-    </div>
-
-    <h2>Персонажи</h2>
-    <div class="grid" id="charactersGrid"></div>
-
-    <h2>Засчитанные уроки</h2>
-    <div class="lessons-list" id="lessonsList"></div>
-
-    <div class="tools">
-      <button class="secondary" id="exportBtn">Скопировать бэкап</button>
-      <button class="secondary" id="importBtn">Вставить бэкап</button>
+    <div class="stats">
+      <div class="badge hearts">❤️ <span id="heartsCount">2</span></div>
+      <div class="badge xp">⚡ <span id="xpCount">149</span></div>
     </div>
   </div>
 
-  <script>
-    const STORAGE_KEY = 'english_hearts_v7';
+  <div class="panel">
+    <div class="panel-title">
+      <span>Синхронизация с Duolingo</span>
+      <span class="rate-tag">25 XP = 1 ❤️</span>
+    </div>
 
-    const CHARACTERS = [
-      { id: 'scout', name: 'Разведчик', emoji: '🧭', cost: 2 },
-      { id: 'scribe', name: 'Летописец', emoji: '📜', cost: 5 },
-      { id: 'alchemist', name: 'Алхимик', emoji: '🧪', cost: 9 },
-      { id: 'warden', name: 'Страж', emoji: '🛡️', cost: 14 },
-      { id: 'oracle', name: 'Оракул', emoji: '🔮', cost: 20 },
-      { id: 'archon', name: 'Архонт', emoji: '👑', cost: 28 }
+    <div class="row">
+      <input type="text" id="usernameInput" placeholder="Ник в Duolingo" />
+      <button class="btn-secondary" onclick="saveUsername()">Ник</button>
+    </div>
+
+    <button class="btn-primary" id="syncBtn" onclick="syncDuolingo()">
+      🔄 Проверить Duolingo и забрать ❤️
+    </button>
+
+    <div class="status-box" id="statusBox">
+      Готово к проверке. У 1-го персонажа (char10) открыты 1–3 уровни, у всех 1-й уровень открыт, баланс: 2 ❤️ и 2/25 XP.
+    </div>
+  </div>
+
+  <div class="section-title">Персонажи (11 героев · по 4 уровня)</div>
+  <div id="gallery"></div>
+
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      tg.ready();
+      tg.expand();
+    }
+
+    const WORKER_URL = 'https://sparkling-cherry-7f42.andiisalaz9696.workers.dev';
+    const XP_PER_HEART = 25;
+    const STORAGE_KEY = 'english_hearts_v7';
+    const ASSETS_DIR = 'assets';
+
+    const TIER_PRESETS = [
+      { level: 1, title: 'Базовый образ', cost: 0, bg: 'linear-gradient(135deg, #2b3545, #1b222c)' },
+      { level: 2, title: 'Образ 2', cost: 2, bg: 'linear-gradient(135deg, #3b2d4a, #21192b)' },
+      { level: 3, title: 'Образ 3', cost: 5, bg: 'linear-gradient(135deg, #4a2d36, #28171d)' },
+      { level: 4, title: 'Финальный образ', cost: 10, bg: 'linear-gradient(135deg, #573b26, #2b1d12)' }
     ];
 
-    function defaultState() {
-      return {
-        hearts: 0,
-        unlocked: [],
-        completedLessons: {}
-      };
+    const CHARACTER_ORDER = [
+      { id: 'char10', name: 'Орин' },
+      { id: 'char11', name: 'Нокс' },
+      { id: 'char1',  name: 'Арден' },
+      { id: 'char2',  name: 'Вейл' },
+      { id: 'char3',  name: 'Кайра' },
+      { id: 'char4',  name: 'Морган' },
+      { id: 'char5',  name: 'Лира' },
+      { id: 'char6',  name: 'Торн' },
+      { id: 'char7',  name: 'Селена' },
+      { id: 'char8',  name: 'Дакс' },
+      { id: 'char9',  name: 'Эйра' }
+    ];
+
+    const CHARACTERS = CHARACTER_ORDER.map(({ id, name }) => ({
+      id,
+      name,
+      tiers: TIER_PRESETS.map(preset => ({
+        ...preset,
+        img: `${ASSETS_DIR}/${id}_${preset.level}.webp`
+      }))
+    }));
+
+    function getDefaultUnlocked() {
+      const base = {};
+      CHARACTER_ORDER.forEach(({ id }) => {
+        base[`${id}_1`] = true;
+      });
+      base['char10_2'] = true;
+      base['char10_3'] = true;
+      return base;
     }
 
     function loadState() {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
-        if (!raw) return defaultState();
-        const parsed = JSON.parse(raw);
-        return {
-          hearts: Number(parsed.hearts) || 0,
-          unlocked: Array.isArray(parsed.unlocked) ? parsed.unlocked : [],
-          completedLessons:
-            parsed.completedLessons && typeof parsed.completedLessons === 'object'
-              ? parsed.completedLessons
-              : {}
-        };
-      } catch (_) {
-        return defaultState();
-      }
-    }
-
-    function saveState(state) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
-
-    function consumeQueryReward(state) {
-      const params = new URLSearchParams(window.location.search);
-      const lesson = (params.get('gs_lesson') || '').trim();
-      const rawHearts = Number(params.get('gs_hearts'));
-
-      if (!lesson && !Number.isFinite(rawHearts)) {
-        return null;
-      }
-
-      // Очищаем параметры из ссылки, чтобы при обновлении страницы награда не дублировалась
-      const cleanUrl = `${window.location.origin}${window.location.pathname}${window.location.hash}`;
-      window.history.replaceState({}, '', cleanUrl);
-
-      if (!lesson || ![1, 2, 3, 5].includes(rawHearts)) {
-        return { ok: false, message: 'Некорректные параметры награды в ссылке.' };
-      }
-
-      if (state.completedLessons[lesson]) {
-        return {
-          ok: false,
-          message: `Урок «${lesson}» уже был засчитан ранее (${state.completedLessons[lesson]} ❤️).`
-        };
-      }
-
-      state.hearts += rawHearts;
-      state.completedLessons[lesson] = rawHearts;
-      saveState(state);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          const mergedUnlocked = {
+            ...getDefaultUnlocked(),
+            ...(parsed.unlocked && typeof parsed.unlocked === 'object' ? parsed.unlocked : {})
+          };
+          return {
+            username: parsed.username || 'Andriy98130',
+            lastDuolingoXp: typeof parsed.lastDuolingoXp === 'number' ? parsed.lastDuolingoXp : null,
+            bufferXp: typeof parsed.bufferXp === 'number' ? parsed.bufferXp % XP_PER_HEART : 2,
+            earnedXpTotal: typeof parsed.earnedXpTotal === 'number' ? parsed.earnedXpTotal : 149,
+            hearts: typeof parsed.hearts === 'number' ? parsed.hearts : 2,
+            unlocked: mergedUnlocked
+          };
+        }
+      } catch (e) {}
 
       return {
-        ok: true,
-        message: `Засчитано +${rawHearts} ❤️ за урок «${lesson}»!`
+        username: 'Andriy98130',
+        lastDuolingoXp: null,
+        bufferXp: 2,
+        earnedXpTotal: 149,
+        hearts: 2,
+        unlocked: getDefaultUnlocked()
       };
     }
 
-    function render(state, rewardNotice) {
+    let state = loadState();
+    saveState();
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    function setStatus(text, type = '') {
+      const box = document.getElementById('statusBox');
+      box.textContent = text;
+      box.className = 'status-box' + (type ? ' ' + type : '');
+    }
+
+    function render() {
+      document.getElementById('usernameInput').value = state.username || 'Andriy98130';
       document.getElementById('heartsCount').textContent = state.hearts;
-      document.getElementById('unlockedCount').textContent = `${state.unlocked.length} / ${CHARACTERS.length}`;
+      document.getElementById('xpCount').textContent = state.earnedXpTotal;
+      document.getElementById('bufferInfo').textContent = `В копилке: ${state.bufferXp} / ${XP_PER_HEART} XP до ❤️`;
 
-      const statusBox = document.getElementById('statusBox');
-      if (rewardNotice) {
-        statusBox.textContent = rewardNotice.message;
-        statusBox.className = rewardNotice.ok ? 'status ok' : 'status';
-      }
+      const gallery = document.getElementById('gallery');
+      gallery.innerHTML = '';
 
-      const grid = document.getElementById('charactersGrid');
-      grid.innerHTML = '';
+      CHARACTERS.forEach(char => {
+        const unlockedCount = char.tiers.filter(t => t.level === 1 || state.unlocked[`${char.id}_${t.level}`]).length;
 
-      CHARACTERS.forEach((char) => {
-        const isUnlocked = state.unlocked.includes(char.id);
-        const canAfford = state.hearts >= char.cost;
-
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.innerHTML = `
-          <div>
-            <div class="char-emoji">${char.emoji}</div>
-            <div class="char-name">${char.name}</div>
-            <div class="char-cost">Стоимость: ${char.cost} ❤️</div>
+        const block = document.createElement('div');
+        block.className = 'character-block';
+        block.innerHTML = `
+          <div class="character-head">
+            <div class="character-name">${char.name}</div>
+            <div class="character-progress">${unlockedCount} / ${char.tiers.length} открыто</div>
           </div>
+          <div class="grid"></div>
         `;
 
-        const btn = document.createElement('button');
-        if (isUnlocked) {
-          btn.textContent = 'Открыт';
-          btn.className = 'unlocked';
-          btn.disabled = true;
-        } else {
-          btn.textContent = `Открыть за ${char.cost} ❤️`;
-          btn.disabled = !canAfford;
-          btn.addEventListener('click', () => {
-            if (state.unlocked.includes(char.id) || state.hearts < char.cost) return;
-            state.hearts -= char.cost;
-            state.unlocked.push(char.id);
-            saveState(state);
-            render(state, { ok: true, message: `Открыт персонаж «${char.name}»!` });
-          });
-        }
+        const grid = block.querySelector('.grid');
 
-        card.appendChild(btn);
-        grid.appendChild(card);
-      });
+        char.tiers.forEach(tier => {
+          const key = `${char.id}_${tier.level}`;
+          const isUnlocked = tier.level === 1 || Boolean(state.unlocked[key]);
 
-      const lessonsList = document.getElementById('lessonsList');
-      const entries = Object.entries(state.completedLessons).reverse();
-      lessonsList.innerHTML = '';
+          const card = document.createElement('div');
+          card.className = 'card' + (isUnlocked ? '' : ' locked');
+          card.innerHTML = `
+            <div class="art-wrap" style="background: ${tier.bg}">
+              <img
+                class="art-img"
+                src="${tier.img}"
+                alt="${char.name} — Уровень ${tier.level}"
+                loading="lazy"
+                onerror="this.style.display='none'"
+              />
+              <div class="art-content">
+                <div class="tier-badge">Уровень ${tier.level}</div>
+                <div class="tier-title">${tier.title}</div>
+              </div>
+              <div class="lock-overlay">
+                <div style="font-size: 20px;">🔒</div>
+                <div class="tier-badge">Уровень ${tier.level}</div>
+              </div>
+            </div>
+            <div class="card-footer">
+              <div class="cost">${tier.cost === 0 ? 'Базовый уровень' : `Цена: ${tier.cost} ❤️`}</div>
+              <button class="unlock-btn ${isUnlocked ? 'opened' : ''}" ${isUnlocked ? 'disabled' : ''}>
+                ${isUnlocked ? 'Открыто ✓' : 'Открыть'}
+              </button>
+            </div>
+          `;
 
-      if (entries.length === 0) {
-        lessonsList.innerHTML = `<div class="lesson-item"><span style="color: var(--muted);">Пока нет засчитанных уроков</span></div>`;
-      } else {
-        entries.forEach(([lessonId, reward]) => {
-          const row = document.createElement('div');
-          row.className = 'lesson-item';
-          row.innerHTML = `<span>${lessonId}</span><span class="badge">+${reward} ❤️</span>`;
-          lessonsList.appendChild(row);
+          if (!isUnlocked) {
+            card.querySelector('.unlock-btn').addEventListener('click', () => unlockTier(key, tier.cost));
+          }
+
+          grid.appendChild(card);
         });
+
+        gallery.appendChild(block);
+      });
+    }
+
+    function saveUsername() {
+      const val = document.getElementById('usernameInput').value.trim().replace(/^@/, '');
+      if (!val) return;
+      if (val !== state.username) {
+        state.username = val;
+        state.lastDuolingoXp = null;
+        saveState();
+        setStatus(`Ник обновлён на ${val}. Нажми «Проверить Duolingo», чтобы зафиксировать стартовый XP.`, 'ok');
+      } else {
+        setStatus(`Текущий ник: ${val}.`);
       }
     }
 
-    const appState = loadState();
-    const notice = consumeQueryReward(appState);
-    render(appState, notice);
+    function applyEarnedXp(gainedXp) {
+      if (gainedXp <= 0) return;
+      state.earnedXpTotal += gainedXp;
+      state.bufferXp += gainedXp;
 
-    document.getElementById('exportBtn').addEventListener('click', () => {
-      const dump = localStorage.getItem(STORAGE_KEY) || JSON.stringify(defaultState());
-      navigator.clipboard?.writeText(dump).catch(() => {});
-      prompt('Скопируй свой бэкап сохранения:', dump);
-    });
+      const newHearts = Math.floor(state.bufferXp / XP_PER_HEART);
+      state.bufferXp = state.bufferXp % XP_PER_HEART;
+      state.hearts += newHearts;
 
-    document.getElementById('importBtn').addEventListener('click', () => {
-      const raw = prompt('Вставь сюда сохранённый JSON-бэкап:');
-      if (!raw) return;
-      try {
-        const parsed = JSON.parse(raw);
-        const next = {
-          hearts: Number(parsed.hearts) || 0,
-          unlocked: Array.isArray(parsed.unlocked) ? parsed.unlocked : [],
-          completedLessons:
-            parsed.completedLessons && typeof parsed.completedLessons === 'object'
-              ? parsed.completedLessons
-              : {}
-        };
-        saveState(next);
-        render(next, { ok: true, message: 'Прогресс успешно восстановлен из бэкапа!' });
-      } catch (_) {
-        alert('Некорректный формат бэкапа.');
+      saveState();
+      render();
+
+      if (newHearts > 0) {
+        setStatus(`Duolingo: +${gainedXp} XP → получено +${newHearts} ❤️! В копилке осталось ${state.bufferXp} XP.`, 'ok');
+      } else {
+        setStatus(`Duolingo: +${gainedXp} XP добавлено в копилку (${state.bufferXp}/${XP_PER_HEART} XP до следующего ❤️).`, 'ok');
       }
-    });
+    }
+
+    async function fetchDuolingoUser(username) {
+      if (!WORKER_URL) {
+        throw new Error('WORKER_URL not configured');
+      }
+      const endpoint = `${WORKER_URL.replace(/\/$/, '')}/?username=${encodeURIComponent(username)}&_=${Date.now()}`;
+      const res = await fetch(endpoint);
+      if (!res.ok) {
+        throw new Error(`Worker HTTP ${res.status}`);
+      }
+      const data = await res.json();
+      if (typeof data.totalXp !== 'number') {
+        throw new Error('Invalid worker payload');
+      }
+      return data;
+    }
+
+    async function syncDuolingo() {
+      const username = (document.getElementById('usernameInput').value.trim().replace(/^@/, '')) || state.username;
+      if (!username) {
+        setStatus('Введи ник в Duolingo.', 'err');
+        return;
+      }
+
+      if (username !== state.username) {
+        state.username = username;
+        state.lastDuolingoXp = null;
+      }
+
+      const btn = document.getElementById('syncBtn');
+      btn.disabled = true;
+      btn.textContent = '⏳ Проверяем Duolingo...';
+      setStatus(`Запрашиваем профиль ${username} через Worker...`);
+
+      try {
+        const user = await fetchDuolingoUser(username);
+        const currentXp = Number(user.totalXp || 0);
+
+        if (state.lastDuolingoXp === null || typeof state.lastDuolingoXp !== 'number') {
+          state.lastDuolingoXp = currentXp;
+          saveState();
+          render();
+          setStatus(`Подключено к ${username}! Зафиксирован базовый XP: ${currentXp} (в копилке сейчас ${state.bufferXp}/${XP_PER_HEART} XP, сердечек: ${state.hearts}).`, 'ok');
+        } else if (currentXp > state.lastDuolingoXp) {
+          const diff = currentXp - state.lastDuolingoXp;
+          state.lastDuolingoXp = currentXp;
+          applyEarnedXp(diff);
+        } else {
+          saveState();
+          render();
+          setStatus(`Новых XP пока нет (в Duolingo по-прежнему ${currentXp} XP).`);
+        }
+      } catch (err) {
+        setStatus('Не удалось получить данные через Worker. Проверь адрес воркера или попробуй через минуту.', 'err');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = '🔄 Проверить Duolingo и забрать ❤️';
+      }
+    }
+
+    function unlockTier(key, cost) {
+      if (state.unlocked[key]) return;
+      if (state.hearts < cost) {
+        const msg = `Не хватает сердечек: нужно ${cost} ❤️, а у тебя ${state.hearts} ❤️.`;
+        if (tg?.showAlert) tg.showAlert(msg);
+        else alert(msg);
+        return;
+      }
+      state.hearts -= cost;
+      state.unlocked[key] = true;
+      saveState();
+      render();
+    }
+
+    render();
   </script>
 </body>
 </html>
